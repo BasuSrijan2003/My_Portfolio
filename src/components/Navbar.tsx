@@ -54,7 +54,7 @@ const contacts = [
     external: true,
   },
   {
-    href: "https://youtube.com/@thewanderlust_duo_2023",
+    href: "https://youtube.com/channel/UCXuhNyqRiQoeNVIh7ZsT3Yw?si=t_mWtOBvMoFl9SXA",
     icon: Youtube,
     accent: "#ff2d2d",
     label: "YouTube",
@@ -63,7 +63,7 @@ const contacts = [
     external: true,
   },
   {
-    href: "https://www.facebook.com/share/163sknfged/",
+    href: "https://www.facebook.com/chocolaty.srijan/",
     icon: Facebook,
     accent: "#1877f2",
     label: "Facebook",
