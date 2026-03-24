@@ -27,19 +27,26 @@ function SkillBadge({ name }: { name: string }) {
 
 export default function AboutSection() {
   const skills = [
-    "UI/UX",
     "Python Programming",
+    "Machine Learning",
     "MERN Stack",
     "Full-Stack",
     "Web Development",
-    "DBMS",
+    "JavaScript",
+    "TypeScript",
+    "PostgreSQL",
+    "MongoDB",
+    "DynamoDB",
+    "Scikit-learn",
     "AI/ML Tools",
     "Data Structures",
+    "FastAPI",
     "Algorithms",
     "Responsive Design",
     "DevOps",
     "API Development",
     "Git",
+    "UI/UX",
   ];
 
   return (

@@ -1,606 +1,393 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useRef, useState, useCallback, memo } from "react";
 
-// Custom Sparkles Effect
-type Sparkle = {
-  id: number;
-  size: number;
-  x: number;
-  y: number;
-  delay: number;
-  duration: number;
-};
-
-function Sparkles({ children }: React.PropsWithChildren<{}>) {
-  const [sparkles, setSparkles] = useState<Sparkle[]>([]);
-
-  useEffect(() => {
-    const generateSparkles = () => {
-      return Array.from({ length: 20 }).map((_, i) => ({
-        id: i,
-        size: Math.random() * 6 + 2,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        delay: Math.random() * 2,
-        duration: Math.random() * 3 + 2,
-      }));
-    };
-    setSparkles(generateSparkles());
-  }, []);
-
-  return (
-    <div className="relative inline-block">
-      {sparkles.map((sparkle) => (
-        <div
-          key={sparkle.id}
-          className="absolute rounded-full bg-white opacity-70 animate-pulse"
-          style={{
-            width: `${sparkle.size}px`,
-            height: `${sparkle.size}px`,
-            left: `${sparkle.x}%`,
-            top: `${sparkle.y}%`,
-            animationDelay: `${sparkle.delay}s`,
-            animationDuration: `${sparkle.duration}s`,
-          }}
-        />
-      ))}
-      {children}
-    </div>
-  );
-}
-
-// Project Data Type
 type Project = {
   id: number;
   title: string;
   description: string;
   technologies: string[];
   category: string;
-  status: string;
-  icon: string;
   features: string[];
   github?: string;
   demo?: string;
-  image?: string;
+  color: string;
+  accent: string;
 };
 
-interface ProjectCardProps {
-  project: Project;
-  index: number;
-  isActive: boolean;
-  onClick: () => void;
-}
+const projects: Project[] = [
+  {
+    id: 1,
+    title: "Life Expectancy Intelligence Dashboard",
+    description:
+      "End-to-end ML pipeline on WHO health data featuring a Random Forest Regressor and an interactive 5-tab dashboard.",
+    technologies: ["Python", "Scikit-learn", "Pandas", "Streamlit", "Plotly"],
+    category: "Machine Learning",
+    features: [
+      "Trained model achieving R² = 96.91% and MAE = ±1.05 years",
+      "Interactive what-if policy simulator with marginal impact breakdown",
+      "Plain-English data query engine built on pure Pandas",
+      "Deployed on Streamlit Cloud with cold-start auto-training",
+    ],
+    github: "https://github.com/BasuSrijan2003/life-expectancy-dashboard",
+    demo: "https://life-expectancy-prediction-2026.streamlit.app",
+    color: "from-emerald-400 to-cyan-500",
+    accent: "rgba(16, 185, 129, 0.15)",
+  },
+  {
+    id: 2,
+    title: "Resumware — AI ATS Builder",
+    description:
+      "Full-stack AI-powered resume builder generating ATS-optimized resumes using LaTeX templates and the Gemini 1.5 API.",
+    technologies: ["React", "Node.js", "Express", "MongoDB", "Gemini API"],
+    category: "Full-Stack AI",
+    features: [
+      "AI-powered content generation via Gemini 1.5 Flash API",
+      "LaTeX-based professional PDF export",
+      "REST APIs designed with Node.js, Express, and TypeScript",
+      "Git-based CI/CD deployment on Netlify and Vercel",
+    ],
+    github: "https://github.com/BasuSrijan2003",
+    demo: "https://resumware.netlify.app",
+    color: "from-purple-500 to-pink-500",
+    accent: "rgba(168, 85, 247, 0.15)",
+  },
+  {
+    id: 3,
+    title: "Callsure.ai",
+    description:
+      "AI-powered healthcare platform for automated call management and secure patient data handling.",
+    technologies: ["FastAPI", "Python", "React", "DynamoDB", "AWS"],
+    category: "AI / Healthcare",
+    features: [
+      "Automated AI-driven call handling for healthcare facilities",
+      "Healthcare appointment scheduling integration",
+      "Secure, HIPAA-compliant patient data management",
+      "Real-time call analytics and AWS DynamoDB integration",
+    ],
+    color: "from-blue-500 to-indigo-500",
+    accent: "rgba(59, 130, 246, 0.15)",
+  },
+  {
+    id: 4,
+    title: "Daily Finance Collection App",
+    description:
+      "Django-based finance tracking application designed for local small businesses to manage daily collections.",
+    technologies: ["Django", "Python", "HTML", "CSS", "JavaScript"],
+    category: "Web Development",
+    features: [
+      "Daily transaction recording and tracking",
+      "Collection summary and financial reports",
+      "Successfully adopted by local small businesses",
+      "Intuitive dashboard for quick daily overviews",
+    ],
+    color: "from-orange-400 to-red-500",
+    accent: "rgba(251, 146, 60, 0.15)",
+  },
+];
 
-function ProjectCard({ project, isActive, onClick }: ProjectCardProps) {
-  const getGradient = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "web application":
-        return "from-purple-600 via-blue-600 to-cyan-500";
-      case "mobile app":
-        return "from-orange-500 via-red-500 to-pink-600";
-      case "full-stack":
-        return "from-green-500 via-teal-500 to-blue-500";
-      case "frontend":
-        return "from-yellow-500 via-orange-500 to-red-500";
-      case "backend":
-        return "from-indigo-500 via-purple-500 to-pink-500";
-      default:
-        return "from-blue-500 via-purple-500 to-pink-500";
-    }
-  };
+const GithubIcon = memo(() => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.5-1.4 6.5-7a4.6 4.6 0 0 0-1.39-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.35-3.5 1.25a11.39 11.39 0 0 0-7 0C6.2 2.75 5.1 3.1 5.1 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 3.6 12c0 5.6 3.35 6.65 6.5 7a4.8 4.8 0 0 0-1 3.02v4" />
+    <path d="M9 20c-5 1.5-5-2.5-7-3" />
+  </svg>
+));
 
-  const getIcon = (iconName: string) => {
-    const icons = {
-      web: "🌐",
-      mobile: "📱",
-      code: "💻",
-      rocket: "🚀",
-      database: "🗄️",
-      api: "⚡",
-      ai: "🤖",
-      game: "🎮",
-    };
-    return icons[iconName as keyof typeof icons] || "🚀";
-  };
+const ExternalLinkIcon = memo(() => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+));
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
-        return "bg-green-500/20 text-green-300 border-green-500/30";
-      case "in progress":
-        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
-      case "planning":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
-      default:
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
-    }
-  };
+// Optimized Spotlight Card Component
+const SpotlightCard = memo(({ project }: { project: Project }) => {
+  const divRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) return;
+    const rect = divRef.current.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  }, []);
+
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
   return (
     <div
-      className={`relative flex-shrink-0 w-96 h-[500px] mx-6 cursor-pointer transition-all duration-700 transform ${
-        isActive
-          ? "scale-110 z-20"
-          : "scale-95 opacity-70 hover:scale-100 hover:opacity-90"
-      }`}
-      onClick={onClick}
+      ref={divRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className="relative flex flex-col h-full rounded-2xl border border-white/10 bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-xl overflow-hidden group transition-all duration-700 hover:scale-[1.02] hover:border-white/20"
       style={{
-        perspective: "1000px",
+        transform: isHovered
+          ? "translateY(-8px) rotateX(2deg)"
+          : "translateY(0) rotateX(0)",
+        boxShadow: isHovered
+          ? `0 20px 60px -15px ${project.accent}, 0 0 0 1px rgba(255,255,255,0.1)`
+          : "0 4px 20px rgba(0,0,0,0.3)",
       }}
     >
-      {/* 3D Card Container */}
+      {/* Animated Spotlight Effect */}
       <div
-        className={`relative w-full h-full transition-transform duration-700 preserve-3d ${
-          isActive ? "rotate-y-12" : "hover:rotate-y-6"
-        }`}
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          transformStyle: "preserve-3d",
-          transform: isActive
-            ? "rotateY(12deg) rotateX(5deg)"
-            : "rotateY(0deg) rotateX(0deg)",
+          background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.08), transparent 40%)`,
         }}
-      >
-        {/* Card Front */}
-        <div className="absolute inset-0 w-full h-full backface-hidden">
-          <div
-            className={`relative w-full h-full rounded-3xl bg-gradient-to-br ${getGradient(
-              project.category
-            )} p-1 shadow-2xl overflow-hidden`}
-          >
-            {/* Inner card */}
-            <div className="relative w-full h-full bg-black/80 backdrop-blur-xl rounded-3xl p-8 overflow-hidden">
-              {/* Animated background pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div
-                  className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/20 to-transparent"
-                  style={{
-                    backgroundImage: `radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                                        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)`,
-                  }}
-                />
-              </div>
+      />
 
-              {/* Content */}
-              <div className="relative z-10 h-full flex flex-col">
-                {/* Header */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div
-                      className={`text-4xl p-3 rounded-xl bg-gradient-to-br ${getGradient(
-                        project.category
-                      )} shadow-lg`}
-                    >
-                      {getIcon(project.icon)}
-                    </div>
-                    <div className="text-right">
-                      <div
-                        className={`px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${getGradient(
-                          project.category
-                        )} text-white`}
-                      >
-                        {project.category.toUpperCase()}
-                      </div>
-                    </div>
-                  </div>
+      {/* Glowing Top Border */}
+      <div
+        className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${project.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+        style={{
+          boxShadow: `0 0 20px ${project.accent}`,
+        }}
+      />
 
-                  <h3 className="text-2xl font-bold text-white mb-2 leading-tight">
-                    {project.title}
-                  </h3>
+      {/* Animated Corner Accents */}
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${project.color} opacity-5 blur-3xl group-hover:opacity-20 transition-opacity duration-700`}
+      />
+      <div
+        className={`absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr ${project.color} opacity-5 blur-3xl group-hover:opacity-20 transition-opacity duration-700`}
+      />
 
-                  <p className="text-gray-300 text-sm font-medium mb-3">
-                    {project.description}
-                  </p>
+      <div className="relative z-10 flex flex-col h-full p-8">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex flex-col gap-3">
+            <span
+              className={`inline-block px-4 py-1.5 text-xs font-bold uppercase tracking-widest bg-gradient-to-r ${project.color} bg-clip-text text-transparent relative`}
+            >
+              <span
+                className={`absolute inset-0 bg-gradient-to-r ${project.color} opacity-10 blur-sm rounded-full`}
+              />
+              <span className="relative">{project.category}</span>
+            </span>
+          </div>
 
-                  <div className="flex items-center justify-between">
-                    <div
-                      className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(
-                        project.status
-                      )}`}
-                    >
-                      {project.status}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Technologies */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-400 mb-2">
-                    Technologies:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.slice(0, 4).map((tech, i) => (
-                      <span
-                        key={i}
-                        className="text-xs px-2 py-1 rounded-lg bg-white/10 text-gray-300 border border-white/20"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {project.technologies.length > 4 && (
-                      <span className="text-xs px-2 py-1 rounded-lg bg-white/10 text-gray-400">
-                        +{project.technologies.length - 4} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className="flex-1 overflow-y-auto">
-                  <h4 className="text-sm font-semibold text-gray-400 mb-2">
-                    Key Features:
-                  </h4>
-                  <ul className="space-y-3">
-                    {project.features.slice(0, 3).map((feature, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start text-sm text-gray-300"
-                      >
-                        <div
-                          className={`w-2 h-2 rounded-full bg-gradient-to-r ${getGradient(
-                            project.category
-                          )} mt-2 mr-3 flex-shrink-0`}
-                        />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                    {project.features.length > 3 && (
-                      <li className="text-xs text-gray-500 italic">
-                        +{project.features.length - 3} more features...
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                {/* Footer */}
-                <div className="mt-6 pt-4 border-t border-white/10">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-500">
-                      Click to explore
-                    </span>
-                    <div className="flex gap-2">
-                      {project.github && (
-                        <div className="w-2 h-2 rounded-full bg-gray-400" />
-                      )}
-                      {project.demo && (
-                        <div className="w-2 h-2 rounded-full bg-green-400" />
-                      )}
-                      <div
-                        className={`w-3 h-3 rounded-full bg-gradient-to-r ${getGradient(
-                          project.category
-                        )} animate-pulse`}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex gap-3">
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-110 hover:rotate-12"
+              >
+                <GithubIcon />
+              </a>
+            )}
+            {project.demo && (
+              <a
+                href={project.demo}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-110 hover:-rotate-12"
+              >
+                <ExternalLinkIcon />
+              </a>
+            )}
           </div>
         </div>
 
-        {/* Glow effect */}
-        {isActive && (
-          <div
-            className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${getGradient(
-              project.category
-            )} opacity-20 blur-xl -z-10`}
-          />
-        )}
+        {/* Title with Gradient on Hover */}
+        <h3
+          className={`text-3xl font-black text-white mb-4 tracking-tight transition-all duration-500 group-hover:bg-gradient-to-r group-hover:${project.color} group-hover:bg-clip-text group-hover:text-transparent`}
+        >
+          {project.title}
+        </h3>
+
+        <p className="text-gray-400 text-sm leading-relaxed mb-6">
+          {project.description}
+        </p>
+
+        {/* Features with Animated Checkmarks */}
+        <div className="mb-6 flex-grow">
+          <ul className="space-y-3">
+            {project.features.map((feature, i) => (
+              <li
+                key={i}
+                className="flex items-start text-sm text-gray-300 group/item opacity-0 animate-fade-in"
+                style={{
+                  animationDelay: `${i * 100}ms`,
+                  animationFillMode: "forwards",
+                }}
+              >
+                <div
+                  className={`w-5 h-5 mr-3 mt-0.5 rounded-full bg-gradient-to-br ${project.color} flex items-center justify-center flex-shrink-0 group-hover/item:scale-110 transition-transform duration-300`}
+                >
+                  <svg
+                    className="w-3 h-3 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <span className="leading-snug group-hover/item:text-white transition-colors duration-300">
+                  {feature}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Tech Stack with Hover Effects */}
+        <div className="pt-6 border-t border-white/10 mt-auto">
+          <div className="flex flex-wrap gap-2">
+            {project.technologies.map((tech, i) => (
+              <span
+                key={i}
+                className="px-3 py-1.5 text-xs font-semibold text-gray-300 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 hover:text-white transition-all duration-300 cursor-default hover:scale-105"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Subtle Scan Line Effect */}
+        <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent animate-scan" />
+        </div>
       </div>
     </div>
   );
-}
+});
 
 export default function ProjectsSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const projects: Project[] = [
-    {
-      id: 1,
-      title: "IIT IIM RESUME Builder",
-      description: "Full-stack resume building platform with AI assistance",
-      technologies: [
-        "React",
-        "Node.js",
-        "MongoDB",
-        "TypeScript",
-        "TailwindCSS",
-      ],
-      category: "Full-Stack",
-      status: "Completed",
-      icon: "web",
-      features: [
-        "AI-powered resume optimization",
-        "Real-time collaboration",
-        "Multiple export formats",
-        "Template customization",
-        "Analytics dashboard",
-        "User authentication system",
-      ],
-      github: "https://github.com/username/resume-builder",
-      demo: "https://iitresume.com",
-    },
-    {
-      id: 2,
-      title: "E-Commerce Platform",
-      description: "Modern e-commerce solution with payment integration",
-      technologies: ["Next.js", "Stripe", "PostgreSQL", "Prisma", "NextAuth"],
-      category: "Web Application",
-      status: "In Progress",
-      icon: "web",
-      features: [
-        "Product catalog management",
-        "Secure payment processing",
-        "Order tracking system",
-        "Admin dashboard",
-        "Inventory management",
-        "Customer reviews",
-      ],
-      github: "https://github.com/username/ecommerce",
-    },
-    {
-      id: 3,
-      title: "Task Management App",
-      description: "Collaborative task management with real-time updates",
-      technologies: ["React Native", "Firebase", "Redux", "TypeScript"],
-      category: "Mobile App",
-      status: "Completed",
-      icon: "mobile",
-      features: [
-        "Real-time synchronization",
-        "Team collaboration",
-        "Progress tracking",
-        "Push notifications",
-        "Offline functionality",
-        "Custom workflows",
-      ],
-      demo: "https://taskapp-demo.com",
-    },
-    {
-      id: 4,
-      title: "AI Chat Assistant",
-      description: "Intelligent chatbot with natural language processing",
-      technologies: ["Python", "FastAPI", "OpenAI", "PostgreSQL", "Docker"],
-      category: "Backend",
-      status: "Planning",
-      icon: "ai",
-      features: [
-        "Natural language understanding",
-        "Context-aware responses",
-        "Multi-language support",
-        "Integration APIs",
-        "Learning capabilities",
-        "Custom training",
-      ],
-    },
-  ];
-
-  const handleScroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 400;
-      const newPosition =
-        direction === "left"
-          ? Math.max(0, scrollPosition - scrollAmount)
-          : Math.min(
-              scrollRef.current.scrollWidth - scrollRef.current.clientWidth,
-              scrollPosition + scrollAmount
-            );
-
-      scrollRef.current.scrollTo({
-        left: newPosition,
-        behavior: "smooth",
-      });
-      setScrollPosition(newPosition);
-    }
-  };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % projects.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <section className="min-h-screen bg-black relative overflow-hidden py-20">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
+    <section
+      id="projects"
+      className="min-h-screen bg-black text-white py-24 px-6 relative overflow-hidden"
+    >
+      {/* Animated Grid Background */}
+      <div className="absolute inset-0 opacity-20">
         <div
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-600/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "4s" }}
-        />
-      </div>
-
-      {/* Grid Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="w-full h-full"
+          className="absolute inset-0"
           style={{
             backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)
           `,
-            backgroundSize: "50px 50px",
+            backgroundSize: "60px 60px",
           }}
         />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <Sparkles>
-            <h2 className="text-6xl md:text-7xl font-black mb-6">
-              My{" "}
-              <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">
-                Projects
-              </span>
-            </h2>
-          </Sparkles>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Explore my portfolio through this interactive 3D experience
-            showcasing various projects and technologies
+      {/* Floating Orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full mix-blend-screen filter blur-[120px] animate-float" />
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-600/30 rounded-full mix-blend-screen filter blur-[120px] animate-float-delayed" />
+        <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-blue-600/30 rounded-full mix-blend-screen filter blur-[120px] animate-float-slow" />
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Section Header */}
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 animate-pulse" />
+            <span className="text-sm font-bold tracking-wider text-gray-300 uppercase">
+              Featured Work
+            </span>
+          </div>
+
+          <h2 className="text-6xl md:text-8xl font-black mb-6 tracking-tighter">
+            <span className="inline-block animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent bg-[length:200%_auto]">
+              Projects
+            </span>
+          </h2>
+
+          <p className="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+            Architecting{" "}
+            <span className="text-cyan-400 font-semibold">
+              scalable backends
+            </span>
+            , training{" "}
+            <span className="text-purple-400 font-semibold">
+              intelligent models
+            </span>
+            , and building{" "}
+            <span className="text-pink-400 font-semibold">
+              seamless applications
+            </span>
           </p>
-
-          {/* Navigation Dots */}
-          <div className="flex justify-center gap-3 mt-8">
-            {projects.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  activeIndex === index
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 scale-125"
-                    : "bg-gray-600 hover:bg-gray-500"
-                }`}
-              />
-            ))}
-          </div>
         </div>
 
-        {/* Timeline Container */}
-        <div className="relative">
-          {/* Navigation Arrows */}
-          <button
-            onClick={() => handleScroll("left")}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => handleScroll("right")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
-
-          {/* Horizontal Scroll Container */}
-          <div
-            ref={scrollRef}
-            className="flex overflow-x-auto scrollbar-hide py-8 px-16"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {projects.map((project, index) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                index={index}
-                isActive={activeIndex === index}
-                onClick={() => setActiveIndex(index)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Active Project Details */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="bg-gray-900/50 backdrop-blur-xl rounded-2xl border border-gray-800 p-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-2xl font-bold text-white">
-                {projects[activeIndex]?.title}
-              </h3>
-              <div className="flex gap-4">
-                {projects[activeIndex]?.github && (
-                  <a
-                    href={projects[activeIndex].github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-300 hover:text-white transition-colors"
-                  >
-                    GitHub
-                  </a>
-                )}
-                {projects[activeIndex]?.demo && (
-                  <a
-                    href={projects[activeIndex].demo}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white transition-colors"
-                  >
-                    Live Demo
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-lg font-semibold text-gray-300 mb-3">
-                  All Features:
-                </h4>
-                <ul className="space-y-2">
-                  {projects[activeIndex]?.features.map((feature, i) => (
-                    <li key={i} className="flex items-start text-gray-400">
-                      <span className="text-purple-400 mr-2">▸</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold text-gray-300 mb-3">
-                  Technologies Used:
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {projects[activeIndex]?.technologies.map((tech, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 rounded-full bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-purple-300 text-sm border border-purple-500/30"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Projects Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {projects.map((project) => (
+            <SpotlightCard key={project.id} project={project} />
+          ))}
         </div>
       </div>
 
       <style>{`
-        .preserve-3d {
-          transform-style: preserve-3d;
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(50px, -30px) scale(1.1); }
         }
-        .backface-hidden {
-          backface-visibility: hidden;
+        
+        @keyframes float-delayed {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-30px, 40px) scale(1.05); }
         }
-        .rotate-y-12 {
-          transform: rotateY(12deg);
+        
+        @keyframes float-slow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(40px, -40px) scale(0.95); }
         }
-        .rotate-y-6 {
-          transform: rotateY(6deg);
+        
+        @keyframes gradient-x {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
         }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
+        
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
         }
+        
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-float { animation: float 20s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-delayed 25s ease-in-out infinite; }
+        .animate-float-slow { animation: float-slow 30s ease-in-out infinite; }
+        .animate-gradient-x { animation: gradient-x 3s ease infinite; }
+        .animate-scan { animation: scan 3s ease-in-out infinite; }
+        .animate-fade-in { animation: fade-in 0.6s ease-out; }
       `}</style>
     </section>
   );

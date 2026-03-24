@@ -4,10 +4,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -17,29 +14,45 @@ export function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand Section */}
             <div className="col-span-1 md:col-span-2">
-              <h3 className="text-2xl font-bold mb-4">Your Name</h3>
+              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                Srijan Basu
+              </h3>
               <p className="text-gray-300 mb-4">
                 Full-stack developer passionate about creating innovative
                 solutions and beautiful user experiences.
               </p>
               <div className="flex space-x-4">
                 <a
-                  href="#"
+                  href="https://github.com/srijanbasu"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-300 hover:text-white transition-colors"
                 >
                   GitHub
                 </a>
                 <a
-                  href="#"
+                  href="https://www.linkedin.com/in/srijanbasu/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-300 hover:text-white transition-colors"
                 >
                   LinkedIn
                 </a>
                 <a
-                  href="#"
+                  href="https://youtube.com/@thewanderlust_duo_2023?si=XAIFSDIeysC7-Jkh"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-gray-300 hover:text-white transition-colors"
                 >
-                  Twitter
+                  YouTube
+                </a>
+                <a
+                  href="https://www.facebook.com/share/163sknfged/?mibextid=wwXIfr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Facebook
                 </a>
               </div>
             </div>
@@ -54,6 +67,14 @@ export function Footer() {
                     className="text-gray-300 hover:text-white transition-colors"
                   >
                     About
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#skills"
+                    className="text-gray-300 hover:text-white transition-colors"
+                  >
+                    Skills
                   </a>
                 </li>
                 <li>
@@ -74,10 +95,10 @@ export function Footer() {
                 </li>
                 <li>
                   <a
-                    href="#contact"
+                    href="#hobbies-complex"
                     className="text-gray-300 hover:text-white transition-colors"
                   >
-                    Contact
+                    Hobbies
                   </a>
                 </li>
               </ul>
@@ -87,9 +108,23 @@ export function Footer() {
             <div>
               <h4 className="text-lg font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-300">
-                <li>2003srijanbasu@gmail.com</li>
-                <li>+91 9088801139</li>
-                <li>Kolkata, West Bengal, kol-700125</li>
+                <li>
+                  <a
+                    href="mailto:2003srijanbasu@gmail.com"
+                    className="hover:text-white transition-colors"
+                  >
+                    2003srijanbasu@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="tel:+919088801139"
+                    className="hover:text-white transition-colors"
+                  >
+                    +91 90888 01139
+                  </a>
+                </li>
+                <li>Kolkata, West Bengal — 700125</li>
               </ul>
             </div>
           </div>
@@ -98,10 +133,8 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-gray-800 py-6 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-gray-300 text-sm">
-            © {currentYear} Your Name. All rights reserved.
+            © {currentYear} Srijan Basu. All rights reserved.
           </p>
-
-          {/* Scroll to Top Button */}
           <button
             onClick={scrollToTop}
             className="mt-4 sm:mt-0 bg-gray-800 hover:bg-gray-700 p-2 rounded-full transition-colors"
